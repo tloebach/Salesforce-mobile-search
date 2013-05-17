@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<apex:page standardStylesheets="false" showHeader="false"
+    sidebar="false" contentType="text/html">
+
+    <apex:outputText escape="false" value="{!"<!DOCTYPE html>"}" />
+
+<html>
+        <head>
+        <meta name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=10.0; user-scalable=yes" />
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+
+        <!-- include jquery mobile  -->
+        <apex:includeScript value="{!URLFOR($Resource.ss_www,'jquery/jquery-1.8.2.min.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.ss_www,'jquery/jquery.mobile-1.2.0.min.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.ss_www,'forcetk.js')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.ss_www,'jquery/jquery.mobile-1.2.0.min.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.ss_www,'app.css')}" />
+        <apex:includeScript value="{!URLFOR($Resource.ss_www,'inline.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.ss_www,'eventhandlers_vf.js')}" />
+
+
+<script type="application/javascript">
+// Get a reference to jQuery that we can work with
+$j = jQuery.noConflict();
+</script>
+
+<script type="application/javascript">
+// Get a reference to jQuery that we can work with
+
+    
+// Create the RemoteTK client - no session id required!
+var forcetkClient = new  forcetk.Client();
+var lastRequest = null;
+var dateRange = "ANYTIME";
+var pageSize = 50;
+var searchContext="Chatter";
+var lastSearchTerm;
+
+forcetkClient.setSessionToken('{!$Api.Session_ID}');
+    var apiVersion = "v26.0";
+    var searchContext = "Chatter"; 
+    var lastSearchTerm;
+
+// Kick things off...
+$j(document).ready(function(){
+    regLinkClickHandlers();
+    //$j.mobile.pageLoading();
+   
+});
+</script>
+
+
+
+        </head>
+        <body>
+        <div data-role="page" data-theme="d" id="jqm-home"><script
+            type="text/javascript">     $j(document).delegate('#jqm-home', 'pageinit', function() {
+                                             if (window.localStorage.getItem("searchHistory") != null && window.localStorage.getItem("searchHistory").length > 0) {
+                                                showSearchHistory();
+                                             }
+              });
+          </script>
+        <div data-theme="d" data-role="header">
+        <h1>Chatter Search</h1>
+        <a href="#options" data-icon="gear" class="ui-btn-right">Options</a> <input
+            placeholder="Search" type="search" name="search" id="searchbar"
+            value="" autocomplete="off" autocapitalize="off" autocorrect="off" />
+        <div data-theme="d" data-role="navbar" id="navbar">
+        <ul>
+            <li><a id="chatter-nav" href="#" class="ui-btn-active">Chatter</a></li>
+            <li><a href="#">Content</a></li>
+            <li><a href="#">Records</a></li>
+            <li><a id="history-nav" href="#">History</a></li>
+
+        </ul>
+        </div>
+        <!-- /navbar --></div>
+
+
+        <div id="#content" data-role="content">
+
+        <div id="search_results"></div>
+        <div id="record_results"></div>
+        <div id="search_history"></div>
+
+
+        </div>
+
+        <div data-theme="d" data-role="footer" data-position="fixed"><!--  <a href="#" class="next_page" id="next_page" data-icon="arrow-r" data-role="button">Next</a> -->
+        </div>
+
+        </div>
+
+        <div data-theme="d" data-role="page" data-add-back-btn="true"
+            id="searchdetail">
+        <div data-role="header">
+        <h1>Chatter Search</h1>
+        <a href="#options" data-icon="gear" class="ui-btn-right">Options</a></div>
+
+
+        <div data-theme="d" id="#content" data-role="content">
+        <div id="div_search_detail"></div>
+        </div>
+
+        </div>
+
+        <div data-role="page" data-theme="d" data-add-back-btn="true"
+            id="recorddetail">
+        <div data-theme="d" data-role="header">
+        <h1>Chatter Search</h1>
+        <a href="#options" data-icon="gear" class="ui-btn-right">Options</a></div>
+
+
+        <div data-theme="d" id="#content" data-role="content">
+        <div id="record_details"></div>
+        </div>
+        <div  data-theme="d"  data-role="footer" data-position="fixed" id="det-footer">
+          </div>
+        </div>
+
+        <div data-role="page" data-theme="d" data-add-back-btn="true"
+            id="options">
+        <div data-theme="d" data-role="header">
+        <h1>Chatter Search</h1>
+        </div>
+
+
+        <div data-theme="d" id="#content" data-role="content">
+        <div id="test-detail"></div>
+
+        <div data-role="fieldcontain"><label id="limit"
+            for="select-choice-0" class="select">Number of results
+        returned:</label> <select data-inline="true" name="limit" id="limit">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option selected="yes" value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+        </select></div>
+        <div data-role="fieldcontain"><label id="limit"
+            for="select-range" class="select">Search Date Range:</label> <select
+            data-inline="true" name="date-range" id="date-range">
+            <option value="ANYTIME">Anytime</option>
+            <option value="TODAY">Today</option>
+            <option value="THIS_WEEK">This Week</option>
+            <option value="LAST_WEEK">Last Week</option>
+            <option value="THIS_MONTH">This Month</option>
+            <option value="LAST_MONTH">Last Month</option>
+            <option value="THIS_QUARTER">This Quarter</option>
+            <option value="LAST_QUARTER">Last Quarter</option>
+            <option selected="yes" value="LAST_90_DAYS">Last 90 Days</option>
+            <option value="THIS_YEAR">This Year</option>
+            <option value="LAST_YEAR">Last Year</option>
+        </select></div>
+        </div>
+        <div>
+        <p><a href="#" id="link_clearhistory" data-role="button"
+            data-inline="true">Clear Search History</a></p>
+        </div>
+        <div data-theme="d" data-role="footer" data-position="fixed">
+        <p><a href="#" id="link_logout" data-role="button"
+            data-inline="true">Logout</a></p>
+        </div>
+
+        </div>
+        <div data-role="dialog" data-theme="d" id="dialog">
+        <div data-role="header" data-position="inline">
+        <h1>Choose Date Range:</h1>
+        </div>
+        <div data-role="content"><label id="limit" for="select-range"
+            class="select">Search Date Range:</label> <select data-inline="true"
+            name="daterange2" id="daterange2">
+            <option selected="yes" value="ANYTIME">Anytime</option>
+            <option value="TODAY">Today</option>
+            <option value="THIS_WEEK">This Week</option>
+            <option value="LAST_WEEK">Last Week</option>
+            <option value="THIS_MONTH">This Month</option>
+            <option value="LAST_MONTH">Last Month</option>
+            <option value="THIS_QUARTER">This Quarter</option>
+            <option value="LAST_QUARTER">Last Quarter</option>
+            <option value="LAST_90_DAYS">Last 90 Days</option>
+            <option value="THIS_YEAR">This Year</option>
+            <option value="LAST_YEAR">Last Year</option>
+        </select></div>
+        </div>
+        </body>
+        </html>
+</apex:page>
